@@ -28,5 +28,4 @@ http://localhost/towntrade/
 Admin Login
 
 Email: admin@towntrade.com
-
-Password: admin123
+Password: Request Only
