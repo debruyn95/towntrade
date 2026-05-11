@@ -85,7 +85,7 @@ $total = 0;
             background: #f5f5f5;
         }
 
-        .page-header {
+        .hero-section {
             background: linear-gradient(
                 90deg,
                 #1c2431,
@@ -93,13 +93,20 @@ $total = 0;
             );
 
             color: white;
-            padding: 60px 0;
+            padding: 70px 0;
         }
 
-        .card-custom {
+        .cart-card {
             border: none;
-            border-radius: 14px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: 0.3s ease;
+            height: 100%;
+        }
+
+        .cart-card:hover {
+            transform: translateY(-5px);
         }
 
         .product-image {
@@ -115,17 +122,17 @@ $total = 0;
 
 <?php include 'includes/navbar.php'; ?>
 
-<!-- HEADER -->
-<section class="page-header text-center">
+<!-- HERO -->
+<section class="hero-section text-center">
 
     <div class="container">
 
-        <h1 class="fw-bold display-5">
+        <h1 class="display-4 fw-bold">
             Shopping Cart
         </h1>
 
-        <p class="lead">
-            Review your selected products
+        <p class="lead mt-3">
+            Review and manage your selected products.
         </p>
 
     </div>
@@ -133,9 +140,9 @@ $total = 0;
 </section>
 
 <!-- CART -->
-<div class="container my-5">
+<div class="container py-5">
 
-    <?php if (count($_SESSION['cart']) > 0): ?>
+    <?php if(isset($_SESSION['cart']) && count($_SESSION['cart']) > 0): ?>
 
         <div class="row g-4">
 
@@ -157,30 +164,34 @@ $total = 0;
                 $total += $subtotal;
             ?>
 
-            <div class="col-lg-4">
+            <div class="col-md-4">
 
-                <div class="card card-custom h-100">
+                <div class="card cart-card">
 
                     <img src="<?php echo BASE_URL; ?>/assets/images/products/<?php echo $product['product_image']; ?>"
-                         class="card-img-top product-image">
+                         class="card-img-top product-image"
+                         alt="<?php echo $product['product_name']; ?>">
 
                     <div class="card-body d-flex flex-column">
 
-                        <h5 class="card-title">
+                        <h4 class="fw-bold">
                             <?php echo $product['product_name']; ?>
-                        </h5>
+                        </h4>
 
-                        <p class="text-muted">
+                        <p class="text-muted flex-grow-1">
                             <?php echo substr($product['description'], 0, 100); ?>...
                         </p>
 
-                        <h4 class="text-primary">
+                        <h5 class="text-primary fw-bold">
+                            Price:
                             R<?php echo number_format($product['price'], 2); ?>
-                        </h4>
+                        </h5>
 
-                        <p class="mb-2">
+                        <p class="mt-2 mb-2">
+
                             Quantity:
                             <strong><?php echo $quantity; ?></strong>
+
                         </p>
 
                         <!-- QUANTITY BUTTONS -->
@@ -203,14 +214,16 @@ $total = 0;
                         </div>
 
                         <h5 class="text-success mb-3">
+
                             Subtotal:
                             R<?php echo number_format($subtotal, 2); ?>
+
                         </h5>
 
                         <a href="cart.php?remove=<?php echo $product['id']; ?>"
                            class="btn btn-danger mt-auto">
 
-                           Remove
+                           Remove Product
 
                         </a>
 
@@ -225,22 +238,22 @@ $total = 0;
         </div>
 
         <!-- TOTAL -->
-        <div class="card card-custom mt-5 p-4">
+        <div class="card shadow-sm border-0 rounded-4 p-4 mt-5">
 
             <div class="d-flex justify-content-between align-items-center">
 
-                <h3>
-                    Total:
+                <h3 class="fw-bold">
+                    Cart Total
                 </h3>
 
-                <h3 class="text-success">
+                <h3 class="text-success fw-bold">
                     R<?php echo number_format($total, 2); ?>
                 </h3>
 
             </div>
 
             <a href="checkout.php"
-               class="btn btn-primary mt-3">
+               class="btn btn-primary mt-4">
 
                Proceed to Checkout
 
@@ -250,13 +263,13 @@ $total = 0;
 
     <?php else: ?>
 
-        <div class="card card-custom p-5 text-center">
+        <div class="alert alert-warning text-center p-5 rounded-4 shadow-sm">
 
-            <h3>
-                Your cart is empty
+            <h3 class="mb-3">
+                Your Cart is Empty
             </h3>
 
-            <p class="text-muted">
+            <p class="mb-4">
                 Browse products and add items to your cart.
             </p>
 
