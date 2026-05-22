@@ -1,17 +1,74 @@
-```php
 <?php
 session_start();
+include 'config/database.php';
 
-require_once 'config/app.php';
-require_once 'config/database.php';
+/* =========================================
+   GET FILTER VALUES
+========================================= */
 
-$sql = "SELECT products.*, categories.category_name
-        FROM products
-        LEFT JOIN categories
+$search = isset($_GET['search'])
+    ? trim($_GET['search'])
+    : '';
+
+$category = isset($_GET['category'])
+    ? intval($_GET['category'])
+    : 0;
+
+/* =========================================
+   LOAD CATEGORIES
+========================================= */
+
+$categoriesQuery = mysqli_query(
+    $conn,
+    "SELECT * FROM categories ORDER BY category_name ASC"
+);
+
+/* =========================================
+   BUILD PRODUCTS QUERY
+========================================= */
+
+$query = "
+    SELECT
+        products.*,
+        categories.category_name
+    FROM products
+    LEFT JOIN categories
         ON products.category_id = categories.id
-        ORDER BY products.id DESC";
+    WHERE 1
+";
 
-$result = mysqli_query($conn, $sql);
+/* CATEGORY FILTER */
+if ($category > 0) {
+
+    $query .= "
+        AND products.category_id = '$category'
+    ";
+}
+
+/* SEARCH FILTER */
+if (!empty($search)) {
+
+    $searchSafe = mysqli_real_escape_string(
+        $conn,
+        $search
+    );
+
+    $query .= "
+        AND (
+            products.product_name LIKE '%$searchSafe%'
+            OR products.description LIKE '%$searchSafe%'
+            OR categories.category_name LIKE '%$searchSafe%'
+        )
+    ";
+}
+
+/* ORDER */
+$query .= "
+    ORDER BY products.id DESC
+";
+
+/* RUN QUERY */
+$result = mysqli_query($conn, $query);
 ?>
 
 <!DOCTYPE html>
@@ -21,58 +78,17 @@ $result = mysqli_query($conn, $sql);
 
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Products - TownTrade SA</title>
 
-    <link rel="icon"
-          type="image/png"
-          href="<?php echo BASE_URL; ?>/assets/images/logo.png">
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
-
-    <style>
-
-        body {
-            background: #f5f5f5;
-        }
-
-        .hero-section {
-            background: linear-gradient(
-                90deg,
-                #1c2431,
-                #0f1f63
-            );
-
-            color: white;
-            padding: 70px 0;
-        }
-
-        .product-card {
-            border: none;
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-            transition: 0.3s ease;
-            height: 100%;
-        }
-
-        .product-card:hover {
-            transform: translateY(-6px);
-        }
-
-        .product-image {
-            height: 250px;
-            object-fit: cover;
-        }
-
-        .product-description {
-            min-height: 70px;
-        }
-
-    </style>
+    <link
+        rel="stylesheet"
+        href="assets/css/style.css"
+    >
 
 </head>
 
@@ -80,72 +96,175 @@ $result = mysqli_query($conn, $sql);
 
 <?php include 'includes/navbar.php'; ?>
 
-<!-- HERO -->
-<section class="hero-section text-center">
+<!-- PAGE BANNER -->
+<section class="page-banner">
 
     <div class="container">
 
-        <h1 class="display-4 fw-bold">
-            Browse Products
-        </h1>
+        <h1>Products</h1>
 
-        <p class="lead mt-3">
-            Explore quality products from sellers across South Africa.
+        <p>
+            Browse products available on TownTrade SA.
         </p>
 
     </div>
 
 </section>
 
-<!-- PRODUCTS -->
-<div class="container py-5">
+<!-- FILTER SECTION -->
+<section class="products-filter-section">
 
-    <?php if(mysqli_num_rows($result) > 0): ?>
+    <div class="container">
 
-        <div class="row g-4">
+        <form
+            method="GET"
+            action="products.php"
+            class="products-filter-form"
+        >
 
-            <?php while($product = mysqli_fetch_assoc($result)): ?>
+            <!-- SEARCH -->
+            <input
+                type="text"
+                name="search"
+                placeholder="Search products..."
+                value="<?php echo htmlspecialchars($search); ?>"
+                class="search-input"
+            >
 
-                <div class="col-md-4">
+            <!-- CATEGORY -->
+            <select
+                name="category"
+                class="category-select"
+            >
 
-                    <div class="card product-card">
+                <option value="0">
+                    Show All Categories
+                </option>
 
-                        <img src="<?php echo BASE_URL; ?>/assets/images/products/<?php echo $product['product_image']; ?>"
-                             class="card-img-top product-image"
-                             alt="<?php echo $product['product_name']; ?>">
+                <?php
+                while ($cat = mysqli_fetch_assoc($categoriesQuery)) {
+                ?>
 
-                        <div class="card-body d-flex flex-column">
+                    <option
+                        value="<?php echo $cat['id']; ?>"
+                        <?php
+                        if ($category == $cat['id']) {
+                            echo 'selected';
+                        }
+                        ?>
+                    >
+                        <?php echo $cat['category_name']; ?>
+                    </option>
 
-                            <span class="badge bg-dark mb-2 align-self-start">
-                                <?php echo $product['category_name']; ?>
-                            </span>
+                <?php } ?>
 
-                            <h4 class="fw-bold">
+            </select>
+
+            <!-- SEARCH BUTTON -->
+            <button
+                type="submit"
+                class="btn-primary"
+            >
+                Search
+            </button>
+
+            <!-- RESET -->
+            <a
+                href="products.php"
+                class="btn-secondary"
+            >
+                Reset
+            </a>
+
+        </form>
+
+    </div>
+
+</section>
+
+<!-- PRODUCTS SECTION -->
+<section class="products-section">
+
+    <div class="container">
+
+        <?php
+        if ($result && mysqli_num_rows($result) > 0) {
+        ?>
+
+            <div class="products-grid">
+
+                <?php
+                while ($product = mysqli_fetch_assoc($result)) {
+                ?>
+
+                    <div class="product-card">
+
+                        <!-- PRODUCT IMAGE -->
+                        <img
+                            src="assets/images/products/<?php echo $product['product_image']; ?>"
+                            alt="<?php echo $product['product_name']; ?>"
+                            class="product-image"
+                        >
+
+                        <!-- PRODUCT INFO -->
+                        <div class="product-info">
+
+                            <!-- CATEGORY -->
+                            <div class="product-category">
+
+                                <?php
+                                echo $product['category_name']
+                                    ? $product['category_name']
+                                    : 'Uncategorized';
+                                ?>
+
+                            </div>
+
+                            <!-- PRODUCT NAME -->
+                            <h3>
                                 <?php echo $product['product_name']; ?>
-                            </h4>
-
-                            <p class="text-muted product-description flex-grow-1">
-                                <?php echo substr($product['description'], 0, 100); ?>...
-                            </p>
-
-                            <h3 class="text-primary fw-bold mb-3">
-                                R<?php echo number_format($product['price'], 2); ?>
                             </h3>
 
-                            <div class="d-grid gap-2">
+                            <!-- DESCRIPTION -->
+                            <p>
 
-                                <a href="<?php echo BASE_URL; ?>/product-details.php?id=<?php echo $product['id']; ?>"
-                                   class="btn btn-primary rounded-3">
+                                <?php
+                                echo substr(
+                                    $product['description'],
+                                    0,
+                                    100
+                                );
+                                ?>...
 
+                            </p>
+
+                            <!-- PRICE -->
+                            <div class="product-price">
+
+                                R<?php
+                                echo number_format(
+                                    $product['price'],
+                                    2
+                                );
+                                ?>
+
+                            </div>
+
+                            <!-- BUTTONS -->
+                            <div class="product-buttons">
+
+                                <a
+                                    href="product-details.php?id=<?php echo $product['id']; ?>"
+                                    class="btn-primary"
+                                >
                                     View Product
-
                                 </a>
 
-                                <a href="<?php echo BASE_URL; ?>/cart.php?id=<?php echo $product['id']; ?>"
-                                   class="btn btn-dark rounded-3">
-
-                                    Add to Cart
-
+                                <a
+                                    href="cart.php?add=<?php echo $product['id']; ?>"
+                                    class="btn-secondary"
+                                >
+                                    Add To Cart
                                 </a>
 
                             </div>
@@ -154,31 +273,41 @@ $result = mysqli_query($conn, $sql);
 
                     </div>
 
-                </div>
+                <?php } ?>
 
-            <?php endwhile; ?>
+            </div>
 
-        </div>
+        <?php
+        } else {
+        ?>
 
-    <?php else: ?>
+            <!-- NO RESULTS -->
+            <div class="empty-products">
 
-        <div class="alert alert-info text-center p-5 rounded-4 shadow-sm">
+                <h2>
+                    No products found
+                </h2>
 
-            <h3 class="mb-3">
-                No Products Found
-            </h3>
+                <p>
+                    No products found matching your search.
+                </p>
 
-            <p class="mb-0">
-                There are currently no products available.
-            </p>
+                <a
+                    href="products.php"
+                    class="btn-primary"
+                >
+                    Back To Products
+                </a>
 
-        </div>
+            </div>
 
-    <?php endif; ?>
+        <?php } ?>
 
-</div>
+    </div>
+
+</section>
 
 <?php include 'includes/footer.php'; ?>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstra
-```
+</body>
+</html>

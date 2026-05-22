@@ -148,7 +148,7 @@ if (isset($_POST['register'])) {
 
                         <a href="<?php echo BASE_URL; ?>/login.php">
 
-                            Already have an account? Login
+                            Already have an account? (Login here)
 
                         </a>
 

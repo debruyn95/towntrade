@@ -1,10 +1,11 @@
 <?php
 session_start();
 
-require_once 'config/app.php';
-
+/* DESTROY SESSION */
+session_unset();
 session_destroy();
 
-header('Location: ' . BASE_URL . '/login.php');
+/* REDIRECT TO LOGIN PAGE */
+header("Location: login.php");
 exit();
 ?>

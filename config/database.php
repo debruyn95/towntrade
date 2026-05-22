@@ -1,9 +1,9 @@
 <?php
 
-$host = "localhost";
-$username = "root";
-$password = "";
-$database = "towntrade_db";
+$host = "sql203.infinityfree.com";
+$username = "if0_41891793";
+$password = "Debruyn1995";
+$database = "if0_41891793_towntrade";
 
 $conn = mysqli_connect($host, $username, $password, $database);
 

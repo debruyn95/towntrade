@@ -1,241 +1,243 @@
 <?php
 session_start();
+include '../config/database.php';
 
-require_once '../config/app.php';
-require_once '../config/database.php';
-
-/* CHECK ADMIN ACCESS */
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
     header("Location: ../login.php");
     exit();
 }
 
-/* TOTAL COUNTS */
-$total_users = mysqli_num_rows(
-    mysqli_query($conn, "SELECT * FROM users")
-);
+/* COUNTS */
+$users_count = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM users"));
+$products_count = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM products"));
+$orders_count = mysqli_num_rows(mysqli_query($conn, "SELECT * FROM orders"));
 
-$total_products = mysqli_num_rows(
-    mysqli_query($conn, "SELECT * FROM products")
-);
-
-$total_orders = mysqli_num_rows(
-    mysqli_query($conn, "SELECT * FROM orders")
-);
+/* TOTAL SALES */
+$sales_query = mysqli_query($conn, "
+    SELECT SUM(total_amount) AS total_sales
+    FROM orders
+");
+$sales_data = mysqli_fetch_assoc($sales_query);
+$total_sales = $sales_data['total_sales'] ?? 0;
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - TownTrade SA</title>
 
-    <link rel="icon"
-          type="image/png"
-          href="<?php echo BASE_URL; ?>/assets/images/logo.png">
+    <!-- BOOTSTRAP -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
-
-    <style>
-
-        body {
-            background: #f5f5f5;
-        }
-
-        .hero-section {
-            background: linear-gradient(
-                90deg,
-                #1c2431,
-                #0f1f63
-            );
-
-            color: white;
-            padding: 70px 0;
-        }
-
-        .dashboard-card {
-            border: none;
-            border-radius: 18px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-            transition: 0.3s ease;
-        }
-
-        .dashboard-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-number {
-            font-size: 42px;
-            font-weight: bold;
-        }
-
-    </style>
-
+    <!-- CUSTOM CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 
-<body>
+<body style="background:#f4f4f4;">
 
+<!-- NAVBAR -->
 <?php include '../includes/navbar.php'; ?>
 
-<!-- HERO -->
-<section class="hero-section text-center">
-
-    <div class="container">
-
-        <h1 class="display-4 fw-bold">
-            Admin Dashboard
-        </h1>
-
-        <p class="lead mt-3">
-            Manage users, products, and orders for TownTrade SA.
-        </p>
-
-    </div>
-
-</section>
-
-<!-- DASHBOARD -->
+<!-- PAGE -->
 <div class="container py-5">
+
+    <h1 class="fw-bold mb-5">Admin Dashboard</h1>
 
     <!-- STATS -->
     <div class="row g-4 mb-5">
 
-        <!-- USERS -->
-        <div class="col-md-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center p-4">
+                <h1 class="text-primary fw-bold">
+                    <?php echo $users_count; ?>
+                </h1>
 
-            <div class="card dashboard-card text-center p-4 h-100">
-
-                <h5 class="mb-3">
-                    Total Users
-                </h5>
-
-                <div class="stat-number text-primary">
-
-                    <?php echo $total_users; ?>
-
-                </div>
-
+                <h4>Registered Users</h4>
             </div>
-
         </div>
 
-        <!-- PRODUCTS -->
-        <div class="col-md-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center p-4">
+                <h1 class="text-primary fw-bold">
+                    <?php echo $products_count; ?>
+                </h1>
 
-            <div class="card dashboard-card text-center p-4 h-100">
-
-                <h5 class="mb-3">
-                    Total Products
-                </h5>
-
-                <div class="stat-number text-success">
-
-                    <?php echo $total_products; ?>
-
-                </div>
-
+                <h4>Total Products</h4>
             </div>
-
         </div>
 
-        <!-- ORDERS -->
-        <div class="col-md-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center p-4">
+                <h1 class="text-primary fw-bold">
+                    <?php echo $orders_count; ?>
+                </h1>
 
-            <div class="card dashboard-card text-center p-4 h-100">
-
-                <h5 class="mb-3">
-                    Total Orders
-                </h5>
-
-                <div class="stat-number text-danger">
-
-                    <?php echo $total_orders; ?>
-
-                </div>
-
+                <h4>Total Orders</h4>
             </div>
+        </div>
 
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-center p-4">
+                <h1 class="text-success fw-bold">
+                    R<?php echo number_format($total_sales, 2); ?>
+                </h1>
+
+                <h4>Total Sales</h4>
+            </div>
         </div>
 
     </div>
 
-    <!-- MANAGEMENT BUTTONS -->
+    <!-- ADMIN ACTIONS -->
     <div class="row g-4">
 
-        <!-- USERS -->
         <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center p-5">
 
-            <div class="card dashboard-card text-center p-4 h-100">
-
-                <h3 class="mb-4">
+                <h3 class="fw-bold mb-4">
                     Manage Users
                 </h3>
 
-                <a href="<?php echo BASE_URL; ?>/admin/users.php"
-                   class="btn btn-primary">
-
-                   View Users
-
+                <a href="users.php" class="btn btn-dark">
+                    View Users
                 </a>
 
             </div>
-
         </div>
 
-        <!-- PRODUCTS -->
         <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center p-5">
 
-            <div class="card dashboard-card text-center p-4 h-100">
-
-                <h3 class="mb-4">
+                <h3 class="fw-bold mb-4">
                     Manage Products
                 </h3>
 
-                <a href="<?php echo BASE_URL; ?>/admin/products.php"
-                   class="btn btn-success">
-
-                   View Products
-
+                <a href="products.php" class="btn btn-dark">
+                    View Products
                 </a>
 
             </div>
-
         </div>
 
-        <!-- ORDERS -->
         <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center p-5">
 
-            <div class="card dashboard-card text-center p-4 h-100">
-
-                <h3 class="mb-4">
+                <h3 class="fw-bold mb-4">
                     Manage Orders
                 </h3>
 
-                <a href="<?php echo BASE_URL; ?>/admin/orders.php"
-                   class="btn btn-dark">
-
-                   View Orders
-
+                <a href="orders.php" class="btn btn-dark">
+                    View Orders
                 </a>
 
             </div>
-
         </div>
 
     </div>
 
 </div>
 
-<?php include '../includes/footer.php'; ?>
+<!-- FOOTER -->
+<footer class="bg-dark text-white pt-5 pb-3 mt-5">
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="container">
+
+        <div class="row">
+
+            <!-- ABOUT -->
+            <div class="col-md-4 mb-4">
+
+                <h2 class="fw-bold">
+                    TownTrade SA
+                </h2>
+
+                <p class="mt-3">
+                    South Africa’s trusted online marketplace for buying and
+                    selling products safely.
+                </p>
+
+            </div>
+
+            <!-- LINKS -->
+            <div class="col-md-4 mb-4">
+
+                <h4 class="fw-bold">
+                    Quick Links
+                </h4>
+
+                <ul class="list-unstyled mt-3">
+
+                    <li class="mb-2">
+                        <a href="../index.php" class="text-white text-decoration-none">
+                            Home
+                        </a>
+                    </li>
+
+                    <li class="mb-2">
+                        <a href="../products.php" class="text-white text-decoration-none">
+                            Products
+                        </a>
+                    </li>
+
+                    <li class="mb-2">
+                        <a href="../login.php" class="text-white text-decoration-none">
+                            Login
+                        </a>
+                    </li>
+
+                    <li class="mb-2">
+                        <a href="../register.php" class="text-white text-decoration-none">
+                            Register
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+
+            <!-- CONTACT -->
+            <div class="col-md-4 mb-4">
+
+                <h4 class="fw-bold">
+                    Contact
+                </h4>
+
+                <p class="mt-3">
+                    Email:
+                    <a href="mailto:support@towntradesa.co.za"
+                       class="text-white">
+                        support@towntradesa.co.za
+                    </a>
+                </p>
+
+                <p>
+                    Phone:
+                    <a href="https://wa.me/27784515381"
+                       target="_blank"
+                       class="text-white">
+                        +27 78 451 5381
+                    </a>
+                </p>
+
+                <p>
+                    Cape Town, South Africa
+                </p>
+
+            </div>
+
+        </div>
+
+        <hr class="border-secondary">
+
+        <div class="text-center">
+            © 2026 TownTrade SA | Built for ITECA3-12 Web Development Project
+        </div>
+
+    </div>
+
+</footer>
 
 </body>
 </html>

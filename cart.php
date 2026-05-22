@@ -1,18 +1,28 @@
 <?php
 session_start();
 
-require_once 'config/app.php';
-require_once 'config/database.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-/* CREATE CART SESSION */
+include 'config/database.php';
+
+/*
+|--------------------------------------------------------------------------
+| CREATE CART SESSION
+|--------------------------------------------------------------------------
+*/
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
 
-/* ADD PRODUCT TO CART */
-if (isset($_GET['id'])) {
+/*
+|--------------------------------------------------------------------------
+| ADD PRODUCT TO CART
+|--------------------------------------------------------------------------
+*/
+if (isset($_GET['add'])) {
 
-    $product_id = (int) $_GET['id'];
+    $product_id = (int)$_GET['add'];
 
     if (isset($_SESSION['cart'][$product_id])) {
 
@@ -22,39 +32,61 @@ if (isset($_GET['id'])) {
 
         $_SESSION['cart'][$product_id] = 1;
     }
+
+    header("Location: cart.php");
+    exit();
 }
 
-/* INCREASE QUANTITY */
-if (isset($_GET['increase'])) {
-
-    $id = (int) $_GET['increase'];
-
-    if (isset($_SESSION['cart'][$id])) {
-        $_SESSION['cart'][$id]++;
-    }
-}
-
-/* DECREASE QUANTITY */
-if (isset($_GET['decrease'])) {
-
-    $id = (int) $_GET['decrease'];
-
-    if (isset($_SESSION['cart'][$id])) {
-
-        $_SESSION['cart'][$id]--;
-
-        if ($_SESSION['cart'][$id] <= 0) {
-            unset($_SESSION['cart'][$id]);
-        }
-    }
-}
-
-/* REMOVE PRODUCT */
+/*
+|--------------------------------------------------------------------------
+| REMOVE PRODUCT
+|--------------------------------------------------------------------------
+*/
 if (isset($_GET['remove'])) {
 
-    $id = (int) $_GET['remove'];
+    $product_id = (int)$_GET['remove'];
 
-    unset($_SESSION['cart'][$id]);
+    unset($_SESSION['cart'][$product_id]);
+
+    header("Location: cart.php");
+    exit();
+}
+
+/*
+|--------------------------------------------------------------------------
+| INCREASE QUANTITY
+|--------------------------------------------------------------------------
+*/
+if (isset($_GET['increase'])) {
+
+    $product_id = (int)$_GET['increase'];
+
+    $_SESSION['cart'][$product_id]++;
+
+    header("Location: cart.php");
+    exit();
+}
+
+/*
+|--------------------------------------------------------------------------
+| DECREASE QUANTITY
+|--------------------------------------------------------------------------
+*/
+if (isset($_GET['decrease'])) {
+
+    $product_id = (int)$_GET['decrease'];
+
+    if ($_SESSION['cart'][$product_id] > 1) {
+
+        $_SESSION['cart'][$product_id]--;
+
+    } else {
+
+        unset($_SESSION['cart'][$product_id]);
+    }
+
+    header("Location: cart.php");
+    exit();
 }
 
 $total = 0;
@@ -67,71 +99,33 @@ $total = 0;
 
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>Shopping Cart - TownTrade SA</title>
 
-    <link rel="icon"
-          type="image/png"
-          href="<?php echo BASE_URL; ?>/assets/images/logo.png">
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
-
-    <style>
-
-        body {
-            background: #f5f5f5;
-        }
-
-        .hero-section {
-            background: linear-gradient(
-                90deg,
-                #1c2431,
-                #0f1f63
-            );
-
-            color: white;
-            padding: 70px 0;
-        }
-
-        .cart-card {
-            border: none;
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-            transition: 0.3s ease;
-            height: 100%;
-        }
-
-        .cart-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .product-image {
-            height: 250px;
-            object-fit: cover;
-        }
-
-    </style>
+    <link
+        rel="stylesheet"
+        href="assets/css/style.css"
+    >
 
 </head>
 
 <body>
 
+<!-- NAVBAR -->
 <?php include 'includes/navbar.php'; ?>
 
-<!-- HERO -->
-<section class="hero-section text-center">
+<!-- PAGE BANNER -->
+<section class="page-banner">
 
     <div class="container">
 
-        <h1 class="display-4 fw-bold">
-            Shopping Cart
-        </h1>
+        <h1>Shopping Cart</h1>
 
-        <p class="lead mt-3">
+        <p>
             Review and manage your selected products.
         </p>
 
@@ -139,156 +133,175 @@ $total = 0;
 
 </section>
 
-<!-- CART -->
-<div class="container py-5">
+<!-- CART SECTION -->
+<section class="cart-section">
 
-    <?php if(isset($_SESSION['cart']) && count($_SESSION['cart']) > 0): ?>
+    <div class="container">
 
-        <div class="row g-4">
+        <?php if (!empty($_SESSION['cart'])): ?>
 
-            <?php
-            foreach ($_SESSION['cart'] as $product_id => $quantity):
+            <div class="products-grid">
 
-                $sql = "SELECT * FROM products WHERE id = '$product_id'";
+                <?php
+                foreach ($_SESSION['cart'] as $product_id => $quantity):
 
-                $result = mysqli_query($conn, $sql);
+                    $query = "SELECT * FROM products WHERE id = $product_id";
 
-                $product = mysqli_fetch_assoc($result);
+                    $result = mysqli_query($conn, $query);
 
-                if (!$product) {
-                    continue;
-                }
+                    if ($result && mysqli_num_rows($result) > 0):
 
-                $subtotal = $product['price'] * $quantity;
+                        $product = mysqli_fetch_assoc($result);
 
-                $total += $subtotal;
-            ?>
+                        $subtotal = $product['price'] * $quantity;
 
-            <div class="col-md-4">
+                        $total += $subtotal;
+                ?>
 
-                <div class="card cart-card">
+                <!-- PRODUCT CARD -->
+                <div class="product-card">
 
-                    <img src="<?php echo BASE_URL; ?>/assets/images/products/<?php echo $product['product_image']; ?>"
-                         class="card-img-top product-image"
-                         alt="<?php echo $product['product_name']; ?>">
+                    <!-- PRODUCT IMAGE -->
+                    <img
+                        src="assets/images/products/<?php echo $product['product_image']; ?>"
+                        alt="<?php echo $product['product_name']; ?>"
+                        class="product-image"
+                    >
 
-                    <div class="card-body d-flex flex-column">
+                    <!-- PRODUCT INFO -->
+                    <div class="product-info">
 
-                        <h4 class="fw-bold">
+                        <h3>
                             <?php echo $product['product_name']; ?>
-                        </h4>
+                        </h3>
 
-                        <p class="text-muted flex-grow-1">
-                            <?php echo substr($product['description'], 0, 100); ?>...
+                        <p>
+                            <?php
+                            echo substr(
+                                $product['description'],
+                                0,
+                                100
+                            );
+                            ?>...
                         </p>
 
-                        <h5 class="text-primary fw-bold">
+                        <!-- PRICE -->
+                        <div class="product-price">
+
                             Price:
                             R<?php echo number_format($product['price'], 2); ?>
-                        </h5>
-
-                        <p class="mt-2 mb-2">
-
-                            Quantity:
-                            <strong><?php echo $quantity; ?></strong>
-
-                        </p>
-
-                        <!-- QUANTITY BUTTONS -->
-                        <div class="d-flex gap-2 mb-3">
-
-                            <a href="cart.php?decrease=<?php echo $product['id']; ?>"
-                               class="btn btn-outline-secondary">
-
-                               −
-
-                            </a>
-
-                            <a href="cart.php?increase=<?php echo $product['id']; ?>"
-                               class="btn btn-outline-secondary">
-
-                               +
-
-                            </a>
 
                         </div>
 
-                        <h5 class="text-success mb-3">
+                        <!-- QUANTITY -->
+                        <p>
+
+                            Quantity:
+                            <?php echo $quantity; ?>
+
+                        </p>
+
+                        <!-- SUBTOTAL -->
+                        <div
+                            class="product-price"
+                            style="color: green;"
+                        >
 
                             Subtotal:
                             R<?php echo number_format($subtotal, 2); ?>
 
-                        </h5>
+                        </div>
 
-                        <a href="cart.php?remove=<?php echo $product['id']; ?>"
-                           class="btn btn-danger mt-auto">
+                        <!-- QUANTITY BUTTONS -->
+                        <div class="quantity-buttons">
 
-                           Remove Product
+                            <a
+                                href="cart.php?decrease=<?php echo $product_id; ?>"
+                                class="quantity-btn"
+                            >
+                                -
+                            </a>
 
-                        </a>
+                            <a
+                                href="cart.php?increase=<?php echo $product_id; ?>"
+                                class="quantity-btn"
+                            >
+                                +
+                            </a>
+
+                        </div>
+
+                        <!-- REMOVE BUTTON -->
+                        <div style="margin-top: 15px;">
+
+                            <a
+                                href="cart.php?remove=<?php echo $product_id; ?>"
+                                class="remove-btn"
+                            >
+                                Remove Product
+                            </a>
+
+                        </div>
 
                     </div>
 
                 </div>
 
+                <?php
+                    endif;
+                endforeach;
+                ?>
+
             </div>
 
-            <?php endforeach; ?>
+            <!-- CART TOTAL -->
+            <div class="cart-total-box">
 
-        </div>
-
-        <!-- TOTAL -->
-        <div class="card shadow-sm border-0 rounded-4 p-4 mt-5">
-
-            <div class="d-flex justify-content-between align-items-center">
-
-                <h3 class="fw-bold">
+                <h2>
                     Cart Total
-                </h3>
+                </h2>
 
-                <h3 class="text-success fw-bold">
+                <div class="cart-total">
+
                     R<?php echo number_format($total, 2); ?>
-                </h3>
+
+                </div>
+
+                <a
+                    href="checkout.php"
+                    class="checkout-btn"
+                >
+                    Proceed to Checkout
+                </a>
 
             </div>
 
-            <a href="checkout.php"
-               class="btn btn-primary mt-4">
+        <?php else: ?>
 
-               Proceed to Checkout
+            <!-- EMPTY CART -->
+            <div class="empty-cart">
 
-            </a>
+                <h2>
+                    Your cart is empty.
+                </h2>
 
-        </div>
+                <a
+                    href="products.php"
+                    class="checkout-btn"
+                >
+                    Browse Products
+                </a>
 
-    <?php else: ?>
+            </div>
 
-        <div class="alert alert-warning text-center p-5 rounded-4 shadow-sm">
+        <?php endif; ?>
 
-            <h3 class="mb-3">
-                Your Cart is Empty
-            </h3>
+    </div>
 
-            <p class="mb-4">
-                Browse products and add items to your cart.
-            </p>
+</section>
 
-            <a href="products.php"
-               class="btn btn-primary">
-
-               Browse Products
-
-            </a>
-
-        </div>
-
-    <?php endif; ?>
-
-</div>
-
+<!-- FOOTER -->
 <?php include 'includes/footer.php'; ?>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>

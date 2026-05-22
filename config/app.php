@@ -1,3 +1,3 @@
 <?php
-define('BASE_URL', '/towntrade');
+define('BASE_URL', '');
 ?>

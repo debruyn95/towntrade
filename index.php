@@ -1,8 +1,7 @@
 <?php
 session_start();
 
-require_once 'config/app.php';
-require_once 'config/database.php';
+include 'config/database.php';
 
 /* FEATURED PRODUCTS */
 $featured_products = mysqli_query(
@@ -12,7 +11,7 @@ $featured_products = mysqli_query(
      LEFT JOIN categories
      ON products.category_id = categories.id
      ORDER BY products.id DESC
-     LIMIT 6"
+     LIMIT 3"
 );
 
 /* TOTAL COUNTS */
@@ -31,86 +30,82 @@ $order_count = mysqli_num_rows(
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
 
     <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>TownTrade SA</title>
 
-    <link rel="icon"
-          type="image/png"
-          href="<?php echo BASE_URL; ?>/assets/images/logo.png">
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
 
-        body {
-            background: #f5f5f5;
+        body{
+            font-family: 'Poppins', sans-serif;
+            background:#f5f5f5;
         }
 
-        .hero-section {
-            background: linear-gradient(
-                90deg,
-                #1c2431,
-                #0f1f63
-            );
-
-            color: white;
-            padding: 100px 0;
+        .hero{
+            background: linear-gradient(90deg,#1a1f2b,#101d63);
+            color:white;
+            padding:120px 0;
         }
 
-        .hero-title {
-            font-size: 55px;
-            font-weight: bold;
+        .hero-title{
+            font-size:4rem;
+            font-weight:700;
+            line-height:1.1;
         }
 
-        .hero-subtitle {
-            font-size: 20px;
-            opacity: 0.9;
+        .hero-text{
+            font-size:1.2rem;
+            margin-top:20px;
+            color:#e0e0e0;
         }
 
-        .stats-card {
-            border: none;
-            border-radius: 18px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-            transition: 0.3s ease;
+        .stats-card{
+            border:none;
+            border-radius:20px;
+            padding:40px;
+            text-align:center;
+            background:white;
+            box-shadow:0 5px 20px rgba(0,0,0,0.08);
         }
 
-        .stats-card:hover {
-            transform: translateY(-5px);
+        .product-card{
+            border:none;
+            border-radius:20px;
+            overflow:hidden;
+            background:white;
+            transition:0.3s;
+            box-shadow:0 5px 20px rgba(0,0,0,0.08);
         }
 
-        .stat-number {
-            font-size: 42px;
-            font-weight: bold;
+        .product-card:hover{
+            transform:translateY(-5px);
         }
 
-        .product-card {
-            border: none;
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-            transition: 0.3s ease;
-            height: 100%;
+        .product-image{
+            height:260px;
+            object-fit:cover;
         }
 
-        .product-card:hover {
-            transform: translateY(-5px);
+        .section-title{
+            font-size:2.3rem;
+            font-weight:700;
         }
 
-        .product-image {
-            height: 250px;
-            object-fit: cover;
-        }
-
-        .product-description {
-            min-height: 70px;
+        .feature-box{
+            background:white;
+            border-radius:18px;
+            padding:35px;
+            text-align:center;
+            box-shadow:0 5px 20px rgba(0,0,0,0.08);
         }
 
     </style>
@@ -122,41 +117,45 @@ $order_count = mysqli_num_rows(
 <?php include 'includes/navbar.php'; ?>
 
 <!-- HERO -->
-<section class="hero-section text-center">
+<section class="hero">
 
     <div class="container">
 
-        <img src="<?php echo BASE_URL; ?>/assets/images/logo.png"
-             alt="TownTrade SA Logo"
-             style="height: 100px; width: auto;"
-             class="mb-4">
+        <div class="row align-items-center">
 
-        <h1 class="hero-title">
-            Welcome to TownTrade SA
-        </h1>
+            <div class="col-lg-6">
 
-        <p class="hero-subtitle mt-3 mb-4">
+                <h1 class="hero-title">
+                    Buy & Sell<br>
+                    Products Across<br>
+                    South Africa
+                </h1>
 
-            South Africa’s trusted online marketplace
-            for buying and selling products safely.
+                <p class="hero-text">
+                    TownTrade SA is a trusted consumer-to-consumer marketplace where
+                    users can safely buy and sell products online.
+                </p>
 
-        </p>
+                <div class="mt-4">
 
-        <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="products.php" class="btn btn-primary btn-lg px-5 py-3">
+                        Browse Marketplace
+                    </a>
 
-            <a href="<?php echo BASE_URL; ?>/products.php"
-               class="btn btn-light btn-lg px-4">
+                </div>
 
-               Browse Products
+            </div>
 
-            </a>
+            <div class="col-lg-6 text-center mt-5 mt-lg-0">
 
-            <a href="<?php echo BASE_URL; ?>/register.php"
-               class="btn btn-outline-light btn-lg px-4">
+                <img
+                    src="https://towntradesa.infinityfreeapp.com/assets/images/logo.png"
+                    alt="TownTrade SA Logo"
+                    class="img-fluid"
+                    style="max-width:400px;"
+                >
 
-               Join Now
-
-            </a>
+            </div>
 
         </div>
 
@@ -171,58 +170,43 @@ $order_count = mysqli_num_rows(
 
         <div class="row g-4">
 
-            <!-- PRODUCTS -->
             <div class="col-md-4">
 
-                <div class="card stats-card text-center p-4 h-100">
+                <div class="stats-card">
 
-                    <h5 class="mb-3">
-                        Products Listed
-                    </h5>
-
-                    <div class="stat-number text-primary">
-
+                    <h1 class="text-primary fw-bold">
                         <?php echo $product_count; ?>
+                    </h1>
 
-                    </div>
+                    <h4>Products Listed</h4>
 
                 </div>
 
             </div>
 
-            <!-- USERS -->
             <div class="col-md-4">
 
-                <div class="card stats-card text-center p-4 h-100">
+                <div class="stats-card">
 
-                    <h5 class="mb-3">
-                        Registered Users
-                    </h5>
-
-                    <div class="stat-number text-success">
-
+                    <h1 class="text-success fw-bold">
                         <?php echo $user_count; ?>
+                    </h1>
 
-                    </div>
+                    <h4>Registered Users</h4>
 
                 </div>
 
             </div>
 
-            <!-- ORDERS -->
             <div class="col-md-4">
 
-                <div class="card stats-card text-center p-4 h-100">
+                <div class="stats-card">
 
-                    <h5 class="mb-3">
-                        Orders Placed
-                    </h5>
-
-                    <div class="stat-number text-danger">
-
+                    <h1 class="text-danger fw-bold">
                         <?php echo $order_count; ?>
+                    </h1>
 
-                    </div>
+                    <h4>Orders Processed</h4>
 
                 </div>
 
@@ -235,82 +219,71 @@ $order_count = mysqli_num_rows(
 </section>
 
 <!-- FEATURED PRODUCTS -->
-<section class="py-5">
+<section class="pb-5">
 
     <div class="container">
 
         <div class="d-flex justify-content-between align-items-center mb-4">
 
-            <h2 class="fw-bold">
+            <h2 class="section-title">
                 Featured Products
             </h2>
 
-            <a href="<?php echo BASE_URL; ?>/products.php"
-               class="btn btn-dark">
-
-               View All
-
+            <a href="products.php" class="btn btn-dark">
+                View All
             </a>
 
         </div>
 
-        <?php if(mysqli_num_rows($featured_products) > 0): ?>
+        <div class="row g-4">
 
-            <div class="row g-4">
+            <?php while($product = mysqli_fetch_assoc($featured_products)) : ?>
 
-                <?php while($product = mysqli_fetch_assoc($featured_products)): ?>
+                <div class="col-md-4">
 
-                    <div class="col-md-4">
+                    <div class="product-card h-100">
 
-                        <div class="card product-card">
+                        <!-- IMAGE -->
+                        <img
+                            src="https://towntradesa.infinityfreeapp.com/assets/images/products/<?php echo $product['product_image']; ?>"
+                            class="card-img-top product-image"
+                            alt="<?php echo htmlspecialchars($product['product_name']); ?>"
+                        >
 
-                            <img src="<?php echo BASE_URL; ?>/assets/images/products/<?php echo $product['product_image']; ?>"
-                                 class="card-img-top product-image"
-                                 alt="<?php echo $product['product_name']; ?>">
+                        <div class="card-body d-flex flex-column">
 
-                            <div class="card-body d-flex flex-column">
+                            <!-- CATEGORY -->
+                            <span class="badge bg-dark mb-2">
+                                <?php echo htmlspecialchars($product['category_name']); ?>
+                            </span>
 
-                                <span class="badge bg-dark mb-2 align-self-start">
+                            <!-- PRODUCT NAME -->
+                            <h3 class="fw-bold">
+                                <?php echo htmlspecialchars($product['product_name']); ?>
+                            </h3>
 
-                                    <?php echo $product['category_name']; ?>
+                            <!-- DESCRIPTION -->
+                            <p class="text-muted flex-grow-1">
+                                <?php echo substr(htmlspecialchars($product['description']),0,100); ?>...
+                            </p>
 
-                                </span>
+                            <!-- PRICE -->
+                            <h2 class="text-primary fw-bold">
+                                R<?php echo number_format($product['price'],2); ?>
+                            </h2>
 
-                                <h4 class="fw-bold">
+                            <!-- BUTTONS -->
+                            <div class="d-grid gap-2 mt-3">
 
-                                    <?php echo $product['product_name']; ?>
+                                <a href="product-details.php?id=<?php echo $product['id']; ?>"
+                                   class="btn btn-primary">
+                                    View Product
+                                </a>
 
-                                </h4>
-
-                                <p class="text-muted product-description flex-grow-1">
-
-                                    <?php echo substr($product['description'], 0, 100); ?>...
-
-                                </p>
-
-                                <h3 class="text-primary fw-bold mb-3">
-
-                                    R<?php echo number_format($product['price'], 2); ?>
-
-                                </h3>
-
-                                <div class="d-grid gap-2">
-
-                                    <a href="<?php echo BASE_URL; ?>/product-details.php?id=<?php echo $product['id']; ?>"
-                                       class="btn btn-primary rounded-3">
-
-                                       View Product
-
-                                    </a>
-
-                                    <a href="<?php echo BASE_URL; ?>/cart.php?id=<?php echo $product['id']; ?>"
-                                       class="btn btn-dark rounded-3">
-
-                                       Add to Cart
-
-                                    </a>
-
-                                </div>
+                                <a href="cart.php?id=<?php echo $product['id']; ?>"
+                                   class="btn btn-dark">
+                                    Add to Cart
+                                </a>
 
                             </div>
 
@@ -318,25 +291,70 @@ $order_count = mysqli_num_rows(
 
                     </div>
 
-                <?php endwhile; ?>
+                </div>
+
+            <?php endwhile; ?>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- WHY CHOOSE -->
+<section class="pb-5">
+
+    <div class="container">
+
+        <h2 class="section-title text-center mb-5">
+            Why Choose TownTrade SA?
+        </h2>
+
+        <div class="row g-4">
+
+            <div class="col-md-4">
+
+                <div class="feature-box">
+
+                    <h3>Secure Trading</h3>
+
+                    <p class="text-muted">
+                        Buy and sell products safely with registered users.
+                    </p>
+
+                </div>
 
             </div>
 
-        <?php else: ?>
+            <div class="col-md-4">
 
-            <div class="alert alert-info text-center p-5 rounded-4 shadow-sm">
+                <div class="feature-box">
 
-                <h3 class="mb-3">
-                    No Products Available
-                </h3>
+                    <h3>Easy Listings</h3>
 
-                <p class="mb-0">
-                    Products will appear here once added.
-                </p>
+                    <p class="text-muted">
+                        List products quickly and reach buyers nationwide.
+                    </p>
+
+                </div>
 
             </div>
 
-        <?php endif; ?>
+            <div class="col-md-4">
+
+                <div class="feature-box">
+
+                    <h3>Local Marketplace</h3>
+
+                    <p class="text-muted">
+                        Support local buying and selling across South Africa.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
 
     </div>
 
